@@ -23,22 +23,23 @@ def index():
     if request.method == "POST":
         # Get input values from form
         try:
-            practice_hours = float(request.form["practice_hours"])
-            lessons_taken = float(request.form["lessons_taken"])
-            theory_score = float(request.form["theory_score"])
-            mock_test_score = float(request.form["mock_test_score"])
-            missed_lessons = float(request.form["missed_lessons"])
+            hours_studied = float(request.form["hours_studied"])
+            attendance = float(request.form["attendance"])
+            previous_grade = float(request.form["previous_grade"])
 
             # Scale the input data
-            data = np.array([[practice_hours, lessons_taken, theory_score, mock_test_score, missed_lessons]])
+            data = np.array([[hours_studied, attendance, previous_grade]])
             data_scaled = scaler.transform(data)
             
-            # Predict pass probability
-            prediction_proba = model.predict_proba(data_scaled)[0][1]
-            prediction = round(prediction_proba * 100, 2)
-        except (ValueError, KeyError) as e:
-            prediction = f"Invalid input. Please enter numeric values. Error: {str(e)}"
+            # Predict final grade
+            prediction = model.predict(data_scaled)[0]
+            prediction = round(prediction, 2)
+            print(f"Prediction: {prediction}")
+        except Exception as e:
+            prediction = f"Error: {str(e)}"
+            print(f"Error in prediction: {e}")
 
+    print(f"Rendering template with prediction={prediction}")
     return render_template("index.html", prediction=prediction)
 
 if __name__ == "__main__":

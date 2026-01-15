@@ -3,7 +3,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 import pickle
 
@@ -14,24 +14,24 @@ np.random.seed(42)
 n_samples = 200
 
 data = pd.DataFrame({
-    'practice_hours': np.random.uniform(0, 20, n_samples),
-    'lessons_taken': np.random.randint(1, 15, n_samples),
-    'theory_score': np.random.randint(40, 100, n_samples),
-    'mock_test_score': np.random.randint(30, 100, n_samples),
-    'missed_lessons': np.random.randint(0, 5, n_samples),
+    'hours_studied': np.random.uniform(0, 20, n_samples),
+    'attendance': np.random.uniform(50, 100, n_samples),
+    'previous_grade': np.random.randint(50, 100, n_samples),
 })
 
-# Simple rule: higher practice, higher scores, fewer missed lessons = Pass
-data['pass'] = ((data['practice_hours'] > 10) & 
-                (data['theory_score'] > 60) & 
-                (data['mock_test_score'] > 50) & 
-                (data['missed_lessons'] < 3)).astype(int)
+# Simple rule: higher hours, higher attendance, higher previous grade = higher final grade
+data['final_grade'] = (
+    data['hours_studied'] * 2 + 
+    data['attendance'] * 0.3 + 
+    data['previous_grade'] * 0.5 + 
+    np.random.normal(0, 5, n_samples)
+).clip(0, 100).round(2)
 
 # ----------------------------
 # 2. Prepare features & target
 # ----------------------------
-X = data[['practice_hours', 'lessons_taken', 'theory_score', 'mock_test_score', 'missed_lessons']]
-y = data['pass']
+X = data[['hours_studied', 'attendance', 'previous_grade']]
+y = data['final_grade']
 
 # Optional: scale features
 scaler = StandardScaler()
@@ -43,9 +43,9 @@ X_scaled = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
 # ----------------------------
-# 4. Train Logistic Regression
+# 4. Train Linear Regression
 # ----------------------------
-model = LogisticRegression()
+model = LinearRegression()
 model.fit(X_train, y_train)
 
 # ----------------------------
