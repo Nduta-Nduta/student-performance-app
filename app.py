@@ -20,27 +20,46 @@ with open("model.pkl", "rb") as f:
 @app.route("/", methods=["GET", "POST"])
 def index():
     prediction = None
+    error = None
     if request.method == "POST":
-        # Get input values from form
         try:
-            hours_studied = float(request.form["hours_studied"])
-            attendance = float(request.form["attendance"])
-            previous_grade = float(request.form["previous_grade"])
+            hours_studied = float(request.form.get("hours_studied", 0))
+            attendance = float(request.form.get("attendance", 0))
+            previous_grade = float(request.form.get("previous_grade", 0))
+            sleep_hours = float(request.form.get("sleep_hours", 0))
+            study_group = float(request.form.get("study_group", 0))
+            assignment_completion = float(request.form.get("assignment_completion", 0))
+            test_prep_days = float(request.form.get("test_prep_days", 0))
 
-            # Scale the input data
-            data = np.array([[hours_studied, attendance, previous_grade]])
-            data_scaled = scaler.transform(data)
-            
-            # Predict final grade
-            prediction = model.predict(data_scaled)[0]
-            prediction = round(prediction, 2)
-            print(f"Prediction: {prediction}")
+            # Validate inputs
+            if not (0 <= attendance <= 100):
+                error = "Attendance must be between 0 and 100"
+            elif not (0 <= hours_studied <= 168):
+                error = "Hours studied must be between 0 and 168"
+            elif not (0 <= previous_grade <= 100):
+                error = "Previous grade must be between 0 and 100"
+            elif not (0 <= sleep_hours <= 12):
+                error = "Sleep hours must be between 0 and 12"
+            elif not (0 <= study_group <= 10):
+                error = "Study group participation must be between 0 and 10"
+            elif not (0 <= assignment_completion <= 100):
+                error = "Assignment completion must be between 0 and 100"
+            elif not (0 <= test_prep_days <= 14):
+                error = "Test prep days must be between 0 and 14"
+            else:
+                # Scale and predict
+                data = np.array([[hours_studied, attendance, previous_grade, sleep_hours, study_group, assignment_completion, test_prep_days]])
+                data_scaled = scaler.transform(data)
+                prediction = model.predict(data_scaled)[0]
+                prediction = round(float(prediction), 2)
+                print(f"Prediction: {prediction}")
+        except ValueError:
+            error = "Please enter valid numeric values"
         except Exception as e:
-            prediction = f"Error: {str(e)}"
-            print(f"Error in prediction: {e}")
+            error = f"Prediction error: {str(e)}"
+            print(f"Exception: {e}")
 
-    print(f"Rendering template with prediction={prediction}")
-    return render_template("index.html", prediction=prediction)
+    return render_template("index.html", prediction=prediction, error=error)
 
 if __name__ == "__main__":
     app.run(debug=True) 

@@ -11,26 +11,34 @@ import pickle
 # 1. Create synthetic dataset
 # ----------------------------
 np.random.seed(42)
-n_samples = 200
+n_samples = 300
 
 data = pd.DataFrame({
     'hours_studied': np.random.uniform(0, 20, n_samples),
     'attendance': np.random.uniform(50, 100, n_samples),
     'previous_grade': np.random.randint(50, 100, n_samples),
+    'sleep_hours': np.random.uniform(4, 10, n_samples),
+    'study_group': np.random.randint(0, 10, n_samples),
+    'assignment_completion': np.random.uniform(50, 100, n_samples),
+    'test_prep_days': np.random.randint(0, 14, n_samples),
 })
 
-# Simple rule: higher hours, higher attendance, higher previous grade = higher final grade
+# Weighted formula: higher values generally lead to better grades
 data['final_grade'] = (
-    data['hours_studied'] * 2 + 
-    data['attendance'] * 0.3 + 
-    data['previous_grade'] * 0.5 + 
-    np.random.normal(0, 5, n_samples)
+    data['hours_studied'] * 1.5 + 
+    data['attendance'] * 0.4 + 
+    data['previous_grade'] * 0.6 +
+    data['sleep_hours'] * 0.8 +
+    data['study_group'] * 0.5 +
+    data['assignment_completion'] * 0.3 +
+    data['test_prep_days'] * 0.7 +
+    np.random.normal(0, 3, n_samples)
 ).clip(0, 100).round(2)
 
 # ----------------------------
 # 2. Prepare features & target
 # ----------------------------
-X = data[['hours_studied', 'attendance', 'previous_grade']]
+X = data[['hours_studied', 'attendance', 'previous_grade', 'sleep_hours', 'study_group', 'assignment_completion', 'test_prep_days']]
 y = data['final_grade']
 
 # Optional: scale features
